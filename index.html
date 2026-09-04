@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Perencanaan FTTH - Rifaldi Muhammad Rizal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            transition: all 0.2s;
+        }
+        .glass-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+            outline: none;
+        }
+        #pdf-template {
+            display: none;
+            font-family: Arial, sans-serif;
+            color: #1e293b;
+            background: #ffffff;
+            padding: 20px;
+        }
+        .pdf-header {
+            border-bottom: 2px solid #0284c7;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8px;
+        }
+        .pdf-table th {
+            background-color: #0284c7;
+            color: white;
+            padding: 5px 3px;
+            text-align: left;
+            border: 1px solid #cbd5e1;
+        }
+        .pdf-table td {
+            padding: 4px 3px;
+            border: 1px solid #e2e8f0;
+            word-wrap: break-word;
+        }
+        .pdf-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <header class="sticky top-0 z-50 glass-card border-b border-slate-700/50 bg-slate-900/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-sky-500/20">
+                    <i class="fa-solid fa-network-wired"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-sky-400 via-indigo-300 to-white bg-clip-text text-transparent">
+                        FTTH Planner Pro
+                    </h1>
+                    <p class="text-xs text-slate-400">Sistem Perencanaan & Desain Instalasi Fiber Optik</p>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center space-x-3 bg-slate-800/80 px-4 py-2 rounded-full border border-slate-700/60">
+                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span class="text-xs text-slate-400">Developer:</span>
+                <span class="text-xs font-semibold text-sky-400">Rifaldi Muhammad Rizal</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+
+        <div class="glass-card rounded-2xl p-6 mb-8 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                <div>
+                    <span class="inline-block px-3 py-1 bg-sky-500/10 text-sky-400 text-xs font-semibold rounded-full border border-sky-500/20 mb-2">
+                        <i class="fa-solid fa-layer-group mr-1"></i> As Planned Drawing System
+                    </span>
+                    <h2 class="text-2xl font-bold text-white">Form Input Perencanaan FTTH</h2>
+                    <p class="text-sm text-slate-400 mt-1">Masukkan informasi header proyek dan detail elemen jaringan fiber optik di bawah ini.</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button type="button" onclick="resetForm()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition border border-slate-700">
+                        <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                    </button>
+                    <button type="button" onclick="exportToPDF()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-sky-500/25 transition flex items-center space-x-2">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>Download PDF</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <form id="ftthForm" onsubmit="event.preventDefault();">
+            <div class="glass-card rounded-2xl p-6 mb-8">
+                <h3 class="text-lg font-semibold text-white mb-4 pb-2 border-b border-slate-700/60">1. Informasi Proyek & Perusahaan</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Perencana / Engineer</label>
+                        <input type="text" id="headerNama" value="Rifaldi Muhammad Rizal" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Perencanaan</label>
+                        <input type="date" id="headerTanggal" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama ISP / Client</label>
+                        <input type="text" id="headerISP" placeholder="Contoh: PT. Fiber Network Indonesia" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Kapasitas ODF</label>
+                        <input type="text" id="headerKapasitasODF" placeholder="Contoh: 144 Core" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Perusahaan Kontraktor / Pelaksana</label>
+                        <input type="text" id="headerPerusahaan" placeholder="Contoh: PT. Solusi Jaringan Optik" class="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-l-sky-500">
+                    <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-server text-sky-400 mr-2"></i>Data OLT</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Kode OLT</label>
+                            <input type="text" id="kodeOLT" placeholder="Contoh: OLT-JKT-01" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Lokasi OLT</label>
+                            <input type="text" id="lokasiOLT" placeholder="Contoh: STO Kebayoran" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-l-indigo-500">
+                    <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-box text-indigo-400 mr-2"></i>Data ODC</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Kode ODC</label>
+                            <input type="text" id="kodeODC" placeholder="Contoh: ODC-KBY-01" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Kapasitas ODC</label>
+                            <input type="text" id="kapasitasODC" placeholder="Contoh: 144 Port" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Lokasi ODC</label>
+                            <input type="text" id="lokasiODC" placeholder="Contoh: Jl. Utama No. 12" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Keterangan Pekerjaan</label>
+                            <input type="text" id="ketODC" placeholder="Contoh: Pemasangan Baru" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-l-emerald-500">
+                    <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-boxes-packing text-emerald-400 mr-2"></i>Data ODP</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="kodeODP" placeholder="Kode ODP (e.g. ODP-KBY-01/01)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="lokasiODP" placeholder="Lokasi ODP" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="kapasitasODP" placeholder="Kapasitas ODP (e.g. 8 Port)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="ketODP" placeholder="Keterangan Pekerjaan" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-l-amber-500">
+                    <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-gopuram text-amber-400 mr-2"></i>Data Tiang</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="kodeTiang" placeholder="Kode Tiang (e.g. T-7M-01)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="lokasiTiang" placeholder="Lokasi Tiang" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="ketTiang" placeholder="Keterangan Pekerjaan" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 border-l-4 border-l-rose-500">
+                    <h3 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-house text-rose-400 mr-2"></i>Data Pelanggan / Rumah</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="kodeRumah" placeholder="Kode Rumah (e.g. RMH-001)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="lokasiRumah" placeholder="Lokasi Rumah" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="ketRumah" placeholder="Keterangan Pekerjaan" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 mb-8">
+                <h3 class="text-lg font-semibold text-white mb-4 pb-2 border-b border-slate-700/60">3. Detail Kabel Fiber Optik</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 space-y-3">
+                        <h4 class="text-xs font-bold text-sky-400 uppercase">Kabel Feeder</h4>
+                        <input type="text" id="kabelFeeder" placeholder="Jenis Kabel (e.g. 24 Core)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="panjangFeeder" placeholder="Panjang (e.g. 1200M)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="ketFeeder" placeholder="Keterangan Pekerjaan" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 space-y-3">
+                        <h4 class="text-xs font-bold text-indigo-400 uppercase">Kabel Distribusi</h4>
+                        <input type="text" id="kabelDistribusi" placeholder="Jenis Kabel (e.g. 12 Core)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="panjangDistribusi" placeholder="Panjang (e.g. 450M)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="ketDistribusi" placeholder="Keterangan Pekerjaan" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-700/50 space-y-3">
+                        <h4 class="text-xs font-bold text-emerald-400 uppercase">Kabel Dropcore</h4>
+                        <input type="text" id="kabelDropcore" placeholder="Jenis Kabel (e.g. 1 Core 3 Sling)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="panjangDropcore" placeholder="Panjang (e.g. 75M)" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                        <input type="text" id="ketDropcore" placeholder="Keterangan Pekerjaan" class="w-full px-3 py-2 rounded-xl glass-input text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-4">
+                <button type="button" onclick="addRecordToTable()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-lg transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Tambahkan ke Tabel
+                </button>
+                <button type="button" onclick="exportToPDF()" class="px-8 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-sm shadow-lg transition">
+                    <i class="fa-solid fa-file-pdf mr-1"></i> Download PDF
+                </button>
+            </div>
+        </form>
+
+        <div class="glass-card rounded-2xl p-6 mt-10 mb-16">
+            <h3 class="text-lg font-bold text-white mb-4">Tabel Preview Perencanaan FTTH</h3>
+            <div class="overflow-x-auto rounded-xl border border-slate-700/60">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-800/80 text-slate-200 uppercase text-[10px] border-b border-slate-700">
+                        <tr>
+                            <th class="py-3 px-3">No</th>
+                            <th class="py-3 px-3">Kode OLT</th>
+                            <th class="py-3 px-3">Kode ODC</th>
+                            <th class="py-3 px-3">Kode ODP</th>
+                            <th class="py-3 px-3">Kode Tiang</th>
+                            <th class="py-3 px-3">Kode Rumah</th>
+                            <th class="py-3 px-3">Feeder</th>
+                            <th class="py-3 px-3">Distribusi</th>
+                            <th class="py-3 px-3">Dropcore</th>
+                            <th class="py-3 px-3 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewTableBody">
+                        <tr id="emptyRow">
+                            <td colspan="10" class="py-8 text-center text-slate-500 italic">Belum ada data perencanaan ditambahkan.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="pdf-template">
+        <div class="pdf-header">
+            <h2 style="margin:0; font-size: 16px; color: #0369a1; text-transform: uppercase;">REKAP DATA PERENCANAAN KABEL FIBER TO THE HOME (FTTH)</h2>
+            <p style="margin:2px 0 0 0; font-size: 10px; color: #64748b;">Dokumen Perencanaan Resmi - As Planned Drawing</p>
+        </div>
+
+        <table style="width: 100%; font-size: 9px; margin-bottom: 12px; border: none;">
+            <tr>
+                <td style="width: 15%; font-weight: bold; border:none;">NAMA</td>
+                <td style="width: 35%; border:none;">: <span id="pdfNama">-</span></td>
+                <td style="width: 18%; font-weight: bold; border:none;">KAPASITAS ODF</td>
+                <td style="width: 32%; border:none;">: <span id="pdfODF">-</span></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; border:none;">TANGGAL</td>
+                <td style="border:none;">: <span id="pdfTanggal">-</span></td>
+                <td style="font-weight: bold; border:none;">NAMA PERUSAHAAN</td>
+                <td style="border:none;">: <span id="pdfPerusahaan">-</span></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold; border:none;">NAMA ISP</td>
+                <td style="border:none;">: <span id="pdfISP">-</span></td>
+                <td style="font-weight: bold; border:none;">DIBUAT OLEH</td>
+                <td style="border:none;">: <b>Rifaldi Muhammad Rizal</b></td>
+            </tr>
+        </table>
+
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th>KODE OLT</th><th>LOKASI OLT</th><th>KODE ODC</th><th>LOKASI ODC</th><th>KAPASITAS ODC</th><th>KET ODC</th>
+                    <th>KODE ODP</th><th>LOKASI ODP</th><th>KAPASITAS ODP</th><th>KET ODP</th><th>KODE RUMAH</th><th>LOKASI RUMAH</th>
+                    <th>KET RUMAH</th><th>KODE TIANG</th><th>LOKASI TIANG</th><th>KET TIANG</th><th>FEEDER</th><th>PANJANG</th><th>KET</th>
+                    <th>DISTRIBUSI</th><th>PANJANG</th><th>KET</th><th>DROPCORE</th><th>PANJANG</th><th>KET</th>
+                </tr>
+            </thead>
+            <tbody id="pdfTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let dataRecords = [];
+        document.getElementById('headerTanggal').valueAsDate = new Date();
+
+        function getFormData() {
+            return {
+                kodeOLT: document.getElementById('kodeOLT').value || '-',
+                lokasiOLT: document.getElementById('lokasiOLT').value || '-',
+                kodeODC: document.getElementById('kodeODC').value || '-',
+                lokasiODC: document.getElementById('lokasiODC').value || '-',
+                kapasitasODC: document.getElementById('kapasitasODC').value || '-',
+                ketODC: document.getElementById('ketODC').value || '-',
+                kodeODP: document.getElementById('kodeODP').value || '-',
+                lokasiODP: document.getElementById('lokasiODP').value || '-',
+                kapasitasODP: document.getElementById('kapasitasODP').value || '-',
+                ketODP: document.getElementById('ketODP').value || '-',
+                kodeRumah: document.getElementById('kodeRumah').value || '-',
+                lokasiRumah: document.getElementById('lokasiRumah').value || '-',
+                ketRumah: document.getElementById('ketRumah').value || '-',
+                kodeTiang: document.getElementById('kodeTiang').value || '-',
+                lokasiTiang: document.getElementById('lokasiTiang').value || '-',
+                ketTiang: document.getElementById('ketTiang').value || '-',
+                kabelFeeder: document.getElementById('kabelFeeder').value || '-',
+                panjangFeeder: document.getElementById('panjangFeeder').value || '-',
+                ketFeeder: document.getElementById('ketFeeder').value || '-',
+                kabelDistribusi: document.getElementById('kabelDistribusi').value || '-',
+                panjangDistribusi: document.getElementById('panjangDistribusi').value || '-',
+                ketDistribusi: document.getElementById('ketDistribusi').value || '-',
+                kabelDropcore: document.getElementById('kabelDropcore').value || '-',
+                panjangDropcore: document.getElementById('panjangDropcore').value || '-',
+                ketDropcore: document.getElementById('ketDropcore').value || '-'
+            };
+        }
+
+        function addRecordToTable() {
+            dataRecords.push(getFormData());
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('previewTableBody');
+            if (dataRecords.length === 0) return;
+            tbody.innerHTML = '';
+            dataRecords.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 px-3">${idx + 1}</td>
+                    <td class="py-3 px-3 text-sky-400 font-medium">${item.kodeOLT}</td>
+                    <td class="py-3 px-3 text-indigo-400">${item.kodeODC}</td>
+                    <td class="py-3 px-3 text-emerald-400">${item.kodeODP}</td>
+                    <td class="py-3 px-3 text-amber-400">${item.kodeTiang}</td>
+                    <td class="py-3 px-3 text-rose-400">${item.kodeRumah}</td>
+                    <td class="py-3 px-3">${item.kabelFeeder} (${item.panjangFeeder})</td>
+                    <td class="py-3 px-3">${item.kabelDistribusi} (${item.panjangDistribusi})</td>
+                    <td class="py-3 px-3">${item.kabelDropcore} (${item.panjangDropcore})</td>
+                    <td class="py-3 px-3 text-center">
+                        <button onclick="dataRecords.splice(${idx},1);renderTable()" class="text-rose-400"><i class="fa-solid fa-trash-can"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportToPDF() {
+            let exportData = dataRecords.length ? dataRecords : [getFormData()];
+
+            document.getElementById('pdfNama').textContent = document.getElementById('headerNama').value || 'Rifaldi Muhammad Rizal';
+            document.getElementById('pdfTanggal').textContent = document.getElementById('headerTanggal').value || '-';
+            document.getElementById('pdfISP').textContent = document.getElementById('headerISP').value || '-';
+            document.getElementById('pdfODF').textContent = document.getElementById('headerKapasitasODF').value || '-';
+            document.getElementById('pdfPerusahaan').textContent = document.getElementById('headerPerusahaan').value || '-';
+
+            const pdfTbody = document.getElementById('pdfTableBody');
+            pdfTbody.innerHTML = '';
+            exportData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.kodeOLT}</td><td>${item.lokasiOLT}</td><td>${item.kodeODC}</td><td>${item.lokasiODC}</td><td>${item.kapasitasODC}</td><td>${item.ketODC}</td>
+                    <td>${item.kodeODP}</td><td>${item.lokasiODP}</td><td>${item.kapasitasODP}</td><td>${item.ketODP}</td><td>${item.kodeRumah}</td><td>${item.lokasiRumah}</td>
+                    <td>${item.ketRumah}</td><td>${item.kodeTiang}</td><td>${item.lokasiTiang}</td><td>${item.ketTiang}</td><td>${item.kabelFeeder}</td><td>${item.panjangFeeder}</td>
+                    <td>${item.ketFeeder}</td><td>${item.kabelDistribusi}</td><td>${item.panjangDistribusi}</td><td>${item.ketDistribusi}</td><td>${item.kabelDropcore}</td><td>${item.panjangDropcore}</td><td>${item.ketDropcore}</td>
+                `;
+                pdfTbody.appendChild(tr);
+            });
+
+            const element = document.getElementById('pdf-template');
+            element.style.display = 'block';
+
+            html2pdf().set({
+                margin: [8, 8, 8, 8],
+                filename: 'Perencanaan_FTTH_Rifaldi_Muhammad_Rizal.pdf',
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            }).from(element).save().then(() => element.style.display = 'none');
+        }
+    </script>
+</body>
+</html>
